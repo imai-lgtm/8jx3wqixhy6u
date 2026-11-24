@@ -405,7 +405,9 @@
 .chara-slot img { height: 92%; bottom: -24%; }
 @media (min-aspect-ratio: 1/1) { .chara-slot img { height: 128%; bottom: -38%; } }
 @media (min-aspect-ratio: 1/1) and (max-height: 500px) { .chara-slot img { height: 132%; bottom: -36%; } }
-@media (max-aspect-ratio: 1/1) and (max-height: 720px) { .chara-slot img { height: 78%; bottom: -24%; } }
+/* スマホ（縦）：実際のスマホは画面の上下にブラウザの帯があって高さが低いので、ここでも大きく出す */
+@media (max-aspect-ratio: 1/1) { .chara-slot img { height: 104%; bottom: -36%; } }
+@media (max-aspect-ratio: 1/1) and (max-height: 720px) { .chara-slot img { height: 104%; bottom: -36%; } }
 
 /* お茶の場面：押してよいことの説明 */
 .drink-ui .how { margin-top: 1.5mm; margin-top: 6px; font-family: var(--gothic); font-size: 11.5px; line-height: 1.5; color: var(--teal-deep); }
