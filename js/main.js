@@ -190,6 +190,8 @@ function sceneVoices(id) {
 }
 function onScene(id) {
   preloadScene(id);
+  if (id === 'welcome') import('./walk3d.js');   // 会話の間に3Dの道具を読みこんでおく（歩き出す前の待ちをなくす）
+  if (id === 'farewell') import('./photo3d.js');
   audio.preloadUrls(sceneVoices(id));
   const next = SCENE_ORDER[SCENE_ORDER.indexOf(id) + 1];
   if (next) preloadScene(next);
@@ -258,7 +260,7 @@ function showLine(who, text) {
 
 function onBeat(b) {
   audio.stopVoice();
-  ui.app.classList.toggle('in3d', b.t === 'walk' || b.t === 'photo');
+  if (b.t !== 'walk' && b.t !== 'photo') ui.app.classList.remove('in3d');   // 3Dの間だけ背景の絵を隠す（隠すのは、3Dが映ってから）
   audio.loop('amb', BEAT_AMB[b.t] || null);
   clearBeatUi();
   ui.hud.hidden = false;
@@ -469,7 +471,8 @@ async function showWalk() {
     walk3d = scene;
     walkShownAt = performance.now();
     canvas.hidden = false;
-    scene.resize();   // 隠していた間は大きさが0なので、出してから合わせる
+    scene.resize();   // 隠していた間は大きさが0なので、出してから合わせる（合わせたらすぐ1枚描く）
+    requestAnimationFrame(() => { if (walk3d === scene) ui.app.classList.add('in3d'); });   // 3Dが映ってから、後ろの背景の絵を隠す
   } catch { /* 3D が無いときは、下のメーターだけで遊べる */ }
 }
 let walkStopSteps = () => {};
@@ -769,6 +772,7 @@ async function showPhoto() {
   </div>`;
   const { createPhotoScene } = await import('./photo3d.js');
   photo = await createPhotoScene({ canvas: $('pcanvas'), bg: 'img/bg_maruishi.webp', family: FAMILY, low: params.get('q') === 'low' });
+  ui.app.classList.add('in3d');
   const finder = $('finder');
   let drag = null;
   finder.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; finder.setPointerCapture(e.pointerId); });
@@ -904,6 +908,8 @@ function startGame() {
 ui.start.addEventListener('click', () => { audio.unlock(); audio.preload(); audio.preloadUrls(sceneVoices('handover')); audio.se('select', 0.5); startGame(); });
 ui.mute.addEventListener('click', () => { audio.setMuted(!audio.muted); ui.mute.classList.toggle('muted', audio.muted); });
 audio.loop('bgm', null);
+// タイトルを見ている間に、最初の場面（出勤）とお出迎えの絵を読みこんでおく（はじめた瞬間に黒い画面が出ないように）
+addEventListener('load', () => { preloadScene('handover'); preloadScene('welcome'); });
 
 // ---------------- まわす ----------------
 let last = performance.now();

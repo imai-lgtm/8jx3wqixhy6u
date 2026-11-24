@@ -113,6 +113,7 @@ export async function createPhotoScene({ canvas, bg, family, low = false }) {
   function resize() {
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.render(scene, camera);   // 大きさを変えると画面が消えるので、すぐ1枚描く
   }
 
   let running = true;

@@ -144,6 +144,7 @@ export async function createWalkScene({ canvas, look, low = false }) {
     camera.aspect = r.W / fullH;
     camera.setViewOffset(r.W, fullH, vx, vy, vw, vh);
     camera.updateProjectionMatrix();
+    renderer.render(scene, camera);   // 大きさを変えると画面が消えるので、すぐ1枚描く（黒い一瞬をなくす）
   }
   resize();
   addEventListener('resize', resize);
