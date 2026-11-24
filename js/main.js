@@ -483,7 +483,7 @@ async function showWalk() {
     e.preventDefault(); game.hold(v); hold.classList.toggle('on', v);
     clearInterval(stepT);
     // 廊下は靴の足音（右・左を交互に）。押している間、だいたい歩く速さで鳴らす
-    if (v) { let k = 0; const st = () => audio.se(k++ % 2 ? 'walk2' : 'walk1', 0.9); st(); stepT = setInterval(st, 520 / TIME_SCALE); }
+    if (v) { let k = 0; const st = () => audio.se(k++ % 2 ? 'walk2' : 'walk1', 0.75); st(); stepT = setInterval(st, 600 / TIME_SCALE); }
   };
   hold.addEventListener('pointerdown', on(true));
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => hold.addEventListener(t, on(false)));
@@ -607,7 +607,7 @@ function showDrink() {
   drinkQueue = []; drinkDone = false;
   ui.panel.hidden = false;
   ui.panel.className = 'panel drink-panel';
-  ui.panel.appendChild(el('div', 'sheet drink-ui', '<div class="glass"><i class="gl"></i><span class="lab">ご家族のグラス</span><span class="bar"><i></i></span><span class="lt"></span></div>'));
+  ui.panel.appendChild(el('div', 'sheet drink-ui', '<div class="glass"><i class="gl"></i><span class="lab">ご家族のグラス</span><span class="bar"><i></i></span><span class="lt"></span></div><p class="how">下のボタンからお話を選べます。お部屋へご案内するタイミングは、あなたが決めよう。</p>'));
   showLine('daughter', 'このドリンク、おいしい……。お庭を見ながら飲めるなんて、ぜいたくだね。');
   renderDrinkChoices();
 }
@@ -753,12 +753,13 @@ function showChop() {
   ui.panel.hidden = false;
   const wrap = el('div', 'sheet chop-ui');
   wrap.appendChild(el('h3', '', '朝食のお膳に、お箸を並べる'));
-  wrap.appendChild(el('p', 'legend', 'お箸は、ふつう<b>箸先を左</b>に向けて置きます（右手で取りやすいように）。お客さまに合わせて向きを変えるときは、お膳をタップ。'));
+  wrap.appendChild(el('p', 'legend', 'お箸は、ふつう<b>箸先を左</b>に向けて置きます（右手で取りやすいように）。お客さまに合わせて向きを変えるときは、<b class="tap">お膳をタップ</b>。'));
   const trays = el('div', 'trays');
   [['father', 'お父さま'], ['mother', 'お母さま'], ['daughter', '娘さま']].forEach(([id, name]) => {
-    const t = el('button', 'tray', `<span class="who">${name}</span><span class="zen"><img class="ti" src="${PROPS.tray}" alt=""><img class="sticks" src="${PROPS.chop}" alt="お箸"></span><span class="dir">箸先：左</span>`);
+    const t = el('button', 'tray hint', `<span class="who">${name}</span><span class="zen"><img class="ti" src="${PROPS.tray}" alt=""><img class="sticks" src="${PROPS.chop}" alt="お箸"></span><span class="dir">箸先：左</span>`);
     t.dataset.id = id;
     t.addEventListener('click', () => {
+      trays.querySelectorAll('.tray').forEach((x) => x.classList.remove('hint'));
       game.flip(id);
       const f = game.chop.flipped[id];
       t.classList.toggle('flip', f);
@@ -787,7 +788,7 @@ async function showPhoto() {
     <div class="top"><div class="hint"><img src="img/senpai_face.webp" alt=""><p>3人ともお顔がそろって、うしろに「円石」が入るといいね。家族円満の石だから。</p></div></div>
     <div class="finder" id="finder"><canvas id="pcanvas"></canvas><div class="grid"></div>
       <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-      <div class="drag">指でなぞって向きを変える</div><div class="tags" id="ptags"></div></div>
+      <div class="drag">1本指でなぞる：向き　2本指でつまむ：ズーム</div><div class="tags" id="ptags"></div></div>
     <div class="ctrl">
       <div class="row"><span class="lab">立ち位置</span><div class="spots"><button class="spot" data-i="0">左</button><button class="spot on" data-i="1">正面</button><button class="spot" data-i="2">右</button></div></div>
       <div class="row"><span class="lab">ズーム</span><span class="zl">引き</span><input id="pzoom" type="range" min="0" max="100" value="85" aria-label="ズーム（左で引き・右で寄り）"><span class="zl">寄り</span></div>
@@ -801,21 +802,38 @@ async function showPhoto() {
   photo = await createPhotoScene({ canvas: $('pcanvas'), bg: 'img/bg_maruishi.webp', family: FAMILY, low: params.get('q') === 'low' });
   ui.app.classList.add('in3d');
   const finder = $('finder');
-  let drag = null;
-  finder.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; finder.setPointerCapture(e.pointerId); });
-  finder.addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const k = (photo.cam.fov * Math.PI / 180) / finder.clientHeight;
-    photo.turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k);
-    drag = { x: e.clientX, y: e.clientY };
+  // 1本指でなぞると向きが変わり、2本指でつまむとズーム（PCはマウスのホイールでもズーム）
+  const pts = new Map();
+  let pinch = null;
+  const zoomTo = (z) => { z = Math.max(0, Math.min(1, z)); photo.setZoom(z); $('pzoom').value = Math.round(z * 100); };
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  finder.addEventListener('pointerdown', (e) => {
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); finder.setPointerCapture(e.pointerId);
+    if (pts.size === 2) pinch = { d: dist(), z: photo.view().zoom };
+    finder.classList.add('touched');
   });
-  finder.addEventListener('pointerup', () => { drag = null; });
+  finder.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (!p) return;
+    if (pts.size >= 2 && pinch) {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      zoomTo(pinch.z + (dist() - pinch.d) / (finder.clientWidth * 0.8));   // 指を広げると寄る
+      return;
+    }
+    const k = (photo.cam.fov * Math.PI / 180) / finder.clientHeight;
+    photo.turn(-(e.clientX - p.x) * k, -(e.clientY - p.y) * k);   // 景色を指でつかんで動かす向き（スマホの地図や写真と同じ）
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  });
+  const up = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; };
+  finder.addEventListener('pointerup', up); finder.addEventListener('pointercancel', up);
+  finder.addEventListener('wheel', (e) => { e.preventDefault(); zoomTo(photo.view().zoom - e.deltaY / 1500); }, { passive: false });
   ui.panel.querySelectorAll('.spot').forEach((b) => b.addEventListener('click', () => {
     ui.panel.querySelectorAll('.spot').forEach((x) => x.classList.toggle('on', x === b));
     photo.setSpot(Number(b.dataset.i)); audio.se('step', 0.2);
   }));
   $('pzoom').addEventListener('input', (e) => photo.setZoom(Number(e.target.value) / 100));
-  $('pcall').addEventListener('click', () => { game.photoCall(); audio.se('select', 0.4); });
+  $('pcall').addEventListener('click', () => { $('pcall').classList.remove('blink'); game.photoCall(); audio.se('select', 0.4); });
+  $('pcall').classList.add('blink');   // 最初は「声をかける」をゆっくり光らせる（押したら止める）
   $('pshutter').addEventListener('click', () => {
     const shot = game.shoot(photo.view());
     if (!shot) return;

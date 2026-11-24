@@ -280,7 +280,7 @@
 .result .perks { display: grid; gap: 6px; }
 
 /* ドリンクのグラスの帯と重ならないよう、気づきの知らせを下げる */
-.screen:has(.drink-panel) .kizuki-pop { top: 124px; }
+.screen:has(.drink-panel) .kizuki-pop { top: 178px; }
 
 /* ロビー：お出ししたグラス（背景の絵の上に、ふわっと置く） */
 .glass-layer { position: absolute; inset: 0; pointer-events: none; }
@@ -406,3 +406,16 @@
 @media (min-aspect-ratio: 1/1) { .chara-slot img { height: 128%; bottom: -38%; } }
 @media (min-aspect-ratio: 1/1) and (max-height: 500px) { .chara-slot img { height: 132%; bottom: -36%; } }
 @media (max-aspect-ratio: 1/1) and (max-height: 720px) { .chara-slot img { height: 78%; bottom: -24%; } }
+
+/* お茶の場面：押してよいことの説明 */
+.drink-ui .how { margin-top: 1.5mm; margin-top: 6px; font-family: var(--gothic); font-size: 11.5px; line-height: 1.5; color: var(--teal-deep); }
+/* お箸：はじめは、お膳を押せることを波紋で知らせる。下の文字もボタンらしく */
+.chop-ui .tray.hint .zen::after { content: ''; position: absolute; left: 50%; top: 55%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 2px solid rgba(214,121,121,.95); animation: ripple 1.6s ease-out infinite; pointer-events: none; }
+.chop-ui .tray .dir { display: inline-block; margin-top: 5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--teal); background: #fff; }
+.chop-ui .tray .dir { white-space: nowrap; padding: 3px 8px; }
+.chop-ui .tray .dir::after { content: ' ⇄'; color: var(--teal-deep); }
+.chop-ui .legend b.tap { color: #b5402e; }
+/* 記念写真：「声をかける」をゆっくり光らせる（点滅はさせない） */
+@keyframes callGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(232,199,106,0); } 50% { box-shadow: 0 0 0 6px rgba(232,199,106,.55); } }
+.photo-ui .call.blink { animation: callGlow 1.6s ease-in-out infinite; border-color: #e8c76a !important; }
+.photo-ui .finder { touch-action: none; }

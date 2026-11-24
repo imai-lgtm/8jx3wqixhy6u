@@ -184,21 +184,22 @@ export const STORY = [
   { t: 'line', who: 'senpai', text: 'ご案内おつかれさま！ 夕食まで、いったん休憩ね。勤務は朝と午後に分かれてて、間の時間は寮で休めるんだよ。', perk: 'nakanuke' },
 
   { t: 'scene', id: 'kitchen' },
-  { t: 'line', who: 'chef', text: '202号室さんの八寸、もうすぐ出せるよ。聞いておきたいことはある？' },
+  { t: 'line', who: 'chef', text: '202号室さんの八寸（はっすん）、もうすぐ出せるよ。季節の味を少しずつ盛り合わせた、会席のはじめのひと皿だ。聞いておきたいことはある？' },
   { t: 'kitchen' },
   { t: 'line', who: 'chef', text: 'お客さまに、よろしく伝えてね。' },
 
   { t: 'scene', id: 'dinner' },
   { t: 'line', who: 'senpai', when: not('seat'), face: 'worry', text: '（小声で）お父さま、掘りごたつに座るの、少しつらそうだね……。' },
   { t: 'line', who: 'father', when: has('seat'), text: '椅子だと楽だねえ。料理がいっそううまそうに見えるよ。' },
-  { t: 'choice', id: 'explain', prompt: '八寸をお出しする。ひとこと添えるなら？', options: 'explain' },
+  { t: 'choice', id: 'explain', prompt: '八寸（季節の味の盛り合わせ）をお出しする。ひとこと添えるなら？', options: 'explain' },
   { t: 'react' },   // 料理のひとことへの、お客さまの反応（聞いたことで変わる）
   { t: 'line', who: 'mother', text: '（お箸を手に取って、向きを左右逆に置き直す）……あら、ごめんなさいね。私、左利きなものだから。' },
   { t: 'line', who: 'father', text: 'いやあ、修善寺は35年ぶりだなあ。あのときも、ちょうど紅葉がきれいでね。', notice: 'anniv' },
+  { t: 'line', who: 'mother', text: 'ふふ。あれから、ちょうど35年。……あのときは、二人きりの旅だったわね。' },
   {
     t: 'choice', id: 'anniv', prompt: 'お父さまの言葉に、どうする？', hint: '今のお話、なにか気になることはない？',
     options: [
-      { tag: 'たずねる', text: '「何かのお祝いのご旅行ですか？」', flag: 'anniv' },
+      { tag: 'たずねる', text: '「もしかして、何かの記念のご旅行ですか？」', flag: 'anniv' },
       { tag: '相づち', text: '「35年前も、紅葉の季節にいらしたんですね」' },
       { tag: '案内する', text: '「明日は竹林の小径もおすすめです」' },
     ],
