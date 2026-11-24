@@ -1,0 +1,109 @@
+/* 宙 SORA 採用ゲーム デザインの見本（モック）共通の見た目 */
+:root {
+  --teal: #4fa191;      /* 公式サイトの基本色 */
+  --teal-deep: #2f6f63;
+  --ink: #1f2a27;       /* 文字 */
+  --washi: #f7f3ea;     /* 和紙の白 */
+  --washi-2: #efe8da;
+  --gold: #b8955a;      /* 細い金の線 */
+  --salmon: #d67979;    /* 差し色（ごく少し） */
+  --mincho: 'Shippori Mincho', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+  --gothic: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #10100f; color: var(--ink); font-family: var(--mincho); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+
+/* 1画面（スマホの大きさ） */
+.screen { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0d0f0e; }
+.bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+
+/* 上の帯：時計・担当カード */
+.hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: calc(12px + env(safe-area-inset-top)) 14px 0; z-index: 5; }
+.clock { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 999px; background: rgba(20, 28, 26, .72); color: #fff; }
+.clock svg { width: 34px; height: 34px; }
+.clock .t { font-size: 22px; letter-spacing: .04em; line-height: 1; }
+.clock .s { font-family: var(--gothic); font-size: 10px; opacity: .8; letter-spacing: .1em; display: block; margin-top: 3px; }
+.card-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 58px; padding: 8px 0 6px; border-radius: 10px; background: rgba(247, 243, 234, .92); box-shadow: 0 4px 14px rgba(0,0,0,.25); font-family: var(--gothic); font-size: 10px; letter-spacing: .05em; color: var(--ink); }
+.card-btn i { display: block; width: 26px; height: 18px; border: 1.5px solid var(--teal-deep); border-radius: 3px; position: relative; }
+.card-btn i::before { content: ''; position: absolute; left: 4px; right: 4px; top: 5px; height: 1.5px; background: var(--teal-deep); box-shadow: 0 4px 0 var(--teal-deep); }
+
+/* 人物 */
+.chara { position: absolute; bottom: 0; transform-origin: bottom center; filter: drop-shadow(0 10px 18px rgba(0,0,0,.25)); }
+
+/* 会話の枠（和紙＋細い金の線） */
+.talk { position: absolute; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 6; }
+.box { position: relative; padding: 22px 20px 18px; border-radius: 4px; background: rgba(247, 243, 234, .94); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.box::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(184, 149, 90, .55); border-radius: 2px; pointer-events: none; }
+.name { position: absolute; top: -14px; left: 14px; padding: 5px 16px; background: var(--teal-deep); color: #fff; font-size: 13px; letter-spacing: .12em; border-radius: 2px; }
+.line { font-size: 16px; line-height: 1.85; letter-spacing: .03em; }
+.line em { font-style: normal; color: var(--teal-deep); background: linear-gradient(transparent 62%, rgba(79,161,145,.22) 0); }
+.next { position: absolute; right: 16px; bottom: 10px; width: 0; height: 0; border: 6px solid transparent; border-top: 8px solid var(--gold); animation: bob 1.2s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(3px); } }
+
+/* 選ぶ（行動のカード） */
+.choices { display: grid; gap: 8px; margin-bottom: 10px; }
+.choice { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 16px; text-align: left; border-radius: 4px; background: rgba(255, 255, 255, .96); box-shadow: 0 4px 14px rgba(0,0,0,.22); font-size: 15px; line-height: 1.5; letter-spacing: .02em; border-left: 3px solid var(--teal); }
+.choice .k { flex: none; font-family: var(--gothic); font-size: 10px; color: var(--teal-deep); letter-spacing: .1em; border: 1px solid var(--teal); border-radius: 2px; padding: 2px 5px; }
+
+/* 気づきの印（ふわっと光る点） */
+.notice { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; z-index: 4; }
+.notice::before, .notice::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255, 244, 214, .95); animation: ripple 2.2s ease-out infinite; }
+.notice::after { animation-delay: 1.1s; }
+.notice b { position: absolute; inset: 15px; border-radius: 50%; background: rgba(255, 244, 214, .95); box-shadow: 0 0 12px rgba(255, 230, 170, .9); }
+@keyframes ripple { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+
+/* 見本の外側（見せるための台紙） */
+.board { min-height: 100%; display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; align-items: flex-start; padding: 32px 20px 60px; background: #e9e4da; }
+.board h1 { width: 100%; text-align: center; font-size: 22px; letter-spacing: .1em; color: #2b2b2b; }
+.board .lead { width: 100%; text-align: center; font-family: var(--gothic); font-size: 13px; color: #555; margin-top: -16px; }
+.phone { width: 390px; }
+.phone .frame { width: 390px; height: 844px; border-radius: 36px; overflow: hidden; border: 10px solid #111; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+.phone p { margin-top: 12px; font-family: var(--gothic); font-size: 13px; line-height: 1.7; color: #333; }
+.phone p b { display: block; font-family: var(--mincho); font-size: 15px; color: #111; margin-bottom: 2px; }
+
+/* ---------- 画面ぴったり（スマホの縦・PCの横長どちらでも） ---------- */
+html, body { overflow: hidden; }
+html:has(.board), body:has(.board) { overflow: auto; height: auto; }
+.screen { height: 100vh; height: 100dvh; }
+/* 横長の画面（PC・タブレット横・スマホ横）：会話の枠は下の中央、選ぶカードは横にならべる */
+@media (min-aspect-ratio: 1/1) {
+  .talk { left: 50%; right: auto; transform: translateX(-50%); width: min(920px, calc(100% - 48px)); bottom: 22px; }
+  .choices { grid-template-columns: repeat(3, 1fr); }
+  .choice { align-items: flex-start; flex-direction: column; gap: 6px; padding: 12px 14px; }
+  .hud { padding: 18px 24px 0; }
+}
+/* 横長で高さが低い（スマホ横持ち）：文字と余白を少し小さく */
+@media (min-aspect-ratio: 1/1) and (max-height: 500px) {
+  .talk { bottom: 10px; }
+  .box { padding: 14px 16px 10px; } .line { font-size: 14px; line-height: 1.6; }
+  .choice { padding: 8px 12px; font-size: 13.5px; gap: 3px; }
+  .choices { gap: 6px; margin-bottom: 16px !important; }
+  .hud { padding: 10px 14px 0; } .clock .t { font-size: 18px; } .clock svg { width: 28px; height: 28px; }
+}
+/* スマホ横持ち：会話の枠（左）と選ぶカード（右）を横にならべ、人物を見えるままにする */
+@media (min-aspect-ratio: 1/1) and (max-height: 500px) {
+  .talk { display: grid; grid-template-columns: 1.05fr 1fr; align-items: end; column-gap: 10px; width: calc(100% - 24px); }
+  .talk .hint { grid-column: 1; grid-row: 1; margin-bottom: 18px; }
+  .talk .choices { grid-column: 2; grid-row: 1 / 3; grid-template-columns: 1fr; margin-bottom: 0 !important; }
+  .talk .box { grid-column: 1; grid-row: 2; }
+  .choice { flex-direction: row; align-items: center; }
+}
+/* 縦長で高さが低いスマホ（360x640・375x667 など）：会話の枠を小さくして、人物の顔を見えるままにする */
+@media (max-aspect-ratio: 1/1) and (max-height: 720px) {
+  .talk { left: 10px; right: 10px; bottom: 8px; }
+  .box { padding: 14px 14px 10px; } .line { font-size: 14px; line-height: 1.65; }
+  .name { font-size: 12px; padding: 3px 12px; top: -12px; }
+  .choices { gap: 5px; margin-bottom: 16px !important; }
+  .choice { padding: 8px 12px; font-size: 13.5px; line-height: 1.4; gap: 8px; }
+  .choice .k { font-size: 9.5px; padding: 1px 4px; }
+  .hint { margin-bottom: 6px !important; } .hint img { width: 34px !important; height: 34px !important; } .hint p { font-size: 11px !important; padding: 6px 10px !important; }
+  .hud { padding: 8px 10px 0; } .clock { padding: 4px 10px 4px 6px; } .clock .t { font-size: 18px; } .clock svg { width: 28px; height: 28px; }
+  .card-btn { width: 50px; padding: 6px 0 4px; font-size: 9px; }
+}
+/* タブレットの縦：会話の枠を広げすぎない */
+@media (max-aspect-ratio: 1/1) and (min-width: 600px) {
+  .talk { left: 50%; right: auto; transform: translateX(-50%); width: 600px; bottom: 28px; }
+}

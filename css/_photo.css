@@ -1,0 +1,61 @@
+
+  .photo-ui { background: #0c0d0c; display: flex; flex-direction: column; color: #fff; }
+  .photo-ui .top { padding: calc(14px + env(safe-area-inset-top)) 14px 10px; }
+  .photo-ui .top .hud { position: static; padding: 0; }
+  .photo-ui .hint { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .photo-ui .hint img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--washi); flex: none; }
+  .photo-ui .hint p { font-family: var(--gothic); font-size: 12.5px; line-height: 1.6; color: #e9efe9; }
+  /* ファインダー（3:2） */
+  .photo-ui .finder { position: relative; margin: 0 12px; aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden; background: #1d2420; touch-action: none; }
+  .photo-ui .finder canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .photo-ui .grid { position: absolute; inset: 0; pointer-events: none; background:
+      linear-gradient(to right, transparent calc(33.33% - .5px), rgba(255,255,255,.35) 0, rgba(255,255,255,.35) calc(33.33% + .5px), transparent 0, transparent calc(66.66% - .5px), rgba(255,255,255,.35) 0, rgba(255,255,255,.35) calc(66.66% + .5px), transparent 0),
+      linear-gradient(to bottom, transparent calc(33.33% - .5px), rgba(255,255,255,.35) 0, rgba(255,255,255,.35) calc(33.33% + .5px), transparent 0, transparent calc(66.66% - .5px), rgba(255,255,255,.35) 0, rgba(255,255,255,.35) calc(66.66% + .5px), transparent 0); }
+  .photo-ui .corner { position: absolute; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.85); pointer-events: none; }
+  .photo-ui .corner.tl { left: 8px; top: 8px; border-right: 0; border-bottom: 0; } .photo-ui .corner.tr { right: 8px; top: 8px; border-left: 0; border-bottom: 0; }
+  .photo-ui .corner.bl { left: 8px; bottom: 8px; border-right: 0; border-top: 0; } .photo-ui .corner.br { right: 8px; bottom: 8px; border-left: 0; border-top: 0; }
+  .photo-ui .tags { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; pointer-events: none; }
+  .photo-ui .tag { padding: 3px 8px; border-radius: 3px; font-family: var(--gothic); font-size: 10.5px; background: rgba(0,0,0,.45); color: #fff; letter-spacing: .05em; }
+  .photo-ui .tag.ok { background: rgba(47,111,99,.85); }
+  .photo-ui .drag { position: absolute; right: 10px; top: 10px; padding: 3px 8px; border-radius: 3px; font-family: var(--gothic); font-size: 10.5px; background: rgba(0,0,0,.4); pointer-events: none; }
+  /* 下の操作 */
+  .photo-ui .ctrl { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 16px 18px calc(18px + env(safe-area-inset-bottom)); }
+  .photo-ui .row { display: flex; align-items: center; gap: 12px; font-family: var(--gothic); font-size: 11px; letter-spacing: .1em; color: #cfd8d4; }
+  .photo-ui .row .lab { width: 54px; flex: none; }
+  .photo-ui .spots { display: flex; gap: 8px; flex: 1; }
+  .photo-ui .spot { flex: 1; padding: 9px 0; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); font-family: var(--mincho); font-size: 13px; color: #fff; letter-spacing: .1em; }
+  .photo-ui .spot.on { background: var(--washi); color: var(--ink); border-color: var(--washi); }
+  .photo-ui input[type=range] { flex: 1; accent-color: #9fd3c7; }
+  .photo-ui .shoot { display: flex; align-items: center; justify-content: space-between; }
+  .photo-ui .call { width: 108px; padding: 12px 0; border-radius: 999px; border: 1px solid rgba(255,255,255,.4); font-size: 13px; letter-spacing: .12em; }
+  .photo-ui .shutter { width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; padding: 5px; }
+  .photo-ui .shutter i { display: block; width: 100%; height: 100%; border-radius: 50%; background: #fff; transition: transform .1s; }
+  .photo-ui .shutter:active i { transform: scale(.9); }
+  .photo-ui .mood { width: 112px; white-space: nowrap; text-align: right; font-family: var(--gothic); font-size: 11px; line-height: 1.5; color: #cfd8d4; }
+  .photo-ui .mood b { display: block; font-family: var(--mincho); font-size: 15px; color: #fff; }
+  /* 撮れた写真 */
+  .photo-ui .print { position: absolute; inset: 0; z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; background: rgba(12,13,12,.92); }
+  .photo-ui .print.show { display: flex; }
+  .photo-ui .paper { width: 100%; padding: 12px 12px 14px; background: #fbf9f4; box-shadow: 0 20px 40px rgba(0,0,0,.5); transform: rotate(-2deg); animation: dropP .7s cubic-bezier(.2,.9,.3,1.2); }
+  @keyframes dropP { from { transform: translateY(-40px) rotate(4deg); opacity: 0; } }
+  .photo-ui .paper img { width: 100%; display: block; }
+  .photo-ui .paper p { margin-top: 10px; color: #444; font-size: 12px; letter-spacing: .1em; text-align: right; }
+  .photo-ui .review { width: 100%; color: #fff; font-family: var(--gothic); font-size: 13px; line-height: 1.9; }
+  .photo-ui .review li { list-style: none; } .photo-ui .review .g { color: #9fd3c7; } .photo-ui .review .b { color: #f0b9a8; }
+  .photo-ui .again { padding: 12px 30px; border-radius: 3px; background: var(--washi); color: var(--ink); font-size: 15px; letter-spacing: .2em; }
+  @media (min-aspect-ratio: 1/1) {
+    .photo-ui { display: grid; grid-template-columns: 1fr 340px; grid-template-rows: auto 1fr; }
+    .photo-ui .finder { grid-column: 1; grid-row: 1 / 3; align-self: center; justify-self: center; margin: 16px; aspect-ratio: 3 / 2; width: min(calc(100vw - 372px), calc((100dvh - 32px) * 1.5)); }
+    .photo-ui .top { grid-column: 2; grid-row: 1; padding: 18px 18px 0 0; }
+    .photo-ui .ctrl { grid-column: 2; grid-row: 2; padding: 10px 18px 18px 0; justify-content: flex-end; }
+    .photo-ui .print { padding: 24px 15vw; flex-direction: row; flex-wrap: wrap; }
+    .photo-ui .paper { width: min(56vh * 1.5, 52vw); }
+    .photo-ui .review { width: 280px; }
+  }
+  @media (min-aspect-ratio: 1/1) and (max-height: 500px) {
+    .photo-ui { grid-template-columns: 1fr 280px; }
+    .photo-ui .finder { width: min(calc(100vw - 304px), calc((100dvh - 20px) * 1.5)); margin: 10px; }
+    .photo-ui .hint { margin-top: 6px; } .photo-ui .hint p { font-size: 11px; } .photo-ui .hint img { width: 32px; height: 32px; }
+    .photo-ui .ctrl { gap: 8px; padding-bottom: 8px; } .photo-ui .spot { padding: 6px 0; } .photo-ui .shutter { width: 58px; height: 58px; } .photo-ui .call { width: 92px; padding: 8px 0; }
+    .photo-ui .mood { width: 92px; font-size: 10px; } .photo-ui .mood b { font-size: 12px; }
+  }

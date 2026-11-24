@@ -1,0 +1,34 @@
+
+  .title .title-bg { background-image: url(../img/title.webp); background-position: 58% 50%; animation: drift 24s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: scale(1.04) translateX(0); } to { transform: scale(1.08) translateX(-1.5%); } }
+  .title .title-bg::after { background: linear-gradient(to bottom, rgba(30,18,8,.18), rgba(0,0,0,0) 28%, rgba(0,0,0,0) 62%, rgba(18,14,10,.72) 88%); }
+  .title .logo { position: absolute; top: calc(20px + env(safe-area-inset-top)); left: 22px; width: 84px; padding: 8px 8px 6px; background: rgba(255,255,255,.88); border-radius: 3px; z-index: 3; }
+  .title .logo img { width: 100%; display: block; }
+  .title .ttl { position: absolute; top: calc(118px + env(safe-area-inset-top)); left: 22px; z-index: 3; color: #fff; text-shadow: 0 2px 14px rgba(70, 30, 0, .55); }
+  .title .ttl .sub { font-size: 14px; letter-spacing: .3em; font-weight: 600; opacity: .95; }
+  .title .ttl h1 { margin-top: 10px; font-size: 44px; font-weight: 800; letter-spacing: .14em; line-height: 1.25; }
+  .title .ttl .tline { width: 46px; height: 1px; margin: 16px 0 12px; background: rgba(255,255,255,.8); }
+  .title .ttl .cap { font-size: 13px; letter-spacing: .16em; line-height: 2; font-weight: 600; }
+  .title .bottom { position: absolute; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom)); z-index: 3; padding: 0 22px; color: #fff; }
+  .title .pick { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-family: var(--gothic); font-size: 12px; letter-spacing: .08em; }
+  .title .pick .av { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: rgba(247,243,234,.9); border: 2px solid rgba(255,255,255,.5); }
+  .title .pick .av.on { border-color: #fff; box-shadow: 0 0 0 3px rgba(79,161,145,.85); }
+  .title .pick .av img { width: 100%; height: 160%; object-fit: cover; object-position: 50% 0; }
+  .title .start { display: block; width: 100%; padding: 17px 0; border-radius: 3px; background: var(--washi); color: var(--ink); font-size: 18px; font-weight: 700; letter-spacing: .3em; box-shadow: 0 10px 26px rgba(0,0,0,.35); position: relative; }
+  .title .start::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(184,149,90,.6); border-radius: 2px; }
+  .title .note { margin-top: 12px; text-align: center; font-family: var(--gothic); font-size: 11px; letter-spacing: .12em; opacity: .85; }
+  /* 窓の光の中のほこり（ゆっくり舞う） */
+  @media (min-aspect-ratio: 1/1) {
+    .title .title-bg { background-image: url(../img/title_wide.webp); background-position: 50% 50%; }
+    .title .title-bg::after { background: linear-gradient(to right, rgba(30,18,8,.45), rgba(0,0,0,0) 45%), linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(18,14,10,.6)); }
+    .title .logo { left: 5vw; top: 6vh; width: 96px; }
+    .title .ttl { left: 5vw; top: 21vh; } .title .ttl h1 { font-size: clamp(40px, 6vh, 60px); }
+    .title .bottom { left: 5vw; right: auto; width: 380px; padding: 0; bottom: 7vh; }
+  }
+  @media (min-aspect-ratio: 1/1) and (max-height: 500px) {
+    .title .logo { top: 14px; width: 70px; } .title .ttl { top: 92px; } .title .ttl h1 { font-size: 32px; } .title .ttl .cap { font-size: 11px; line-height: 1.8; } .title .ttl .tline { margin: 8px 0; }
+    .title .bottom { bottom: 12px; width: 320px; } .title .pick { margin-bottom: 8px; } .title .pick .av { width: 38px; height: 38px; } .title .start { padding: 12px 0; font-size: 16px; } .title .note { margin-top: 6px; }
+  }
+  .title .dust { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .title .dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: rgba(255, 238, 200, .9); box-shadow: 0 0 6px rgba(255, 220, 150, .9); animation: float 9s linear infinite; opacity: 0; }
+  @keyframes float { 0% { transform: translate(0,0); opacity: 0; } 20% { opacity: .9; } 80% { opacity: .7; } 100% { transform: translate(30px,-80px); opacity: 0; } }

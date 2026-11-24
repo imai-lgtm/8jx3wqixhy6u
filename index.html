@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#1f2a27">
+<title>はじめての担当 ― 宙 SORA の一泊二日</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=Zen+Kaku+Gothic+New:wght@500;700&family=Zen+Kurenaido&display=swap">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/game.css">
+<link rel="stylesheet" href="css/_title.css">
+<link rel="stylesheet" href="css/_result.css">
+<link rel="stylesheet" href="css/_photo.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<div class="screen" id="app">
+  <!-- 背景（2枚を重ねて、場面の切りかえでゆっくり入れかえる） -->
+  <div class="bg" id="bgA"></div><div class="bg" id="bgB"></div>
+  <canvas id="stage3d" hidden></canvas>
+  <!-- 立ち絵（話している人） -->
+  <div id="chara" class="chara-slot" aria-hidden="true"></div>
+
+  <!-- 上の帯 -->
+  <div class="hud" id="hud" hidden>
+    <div class="clock">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle id="clockArc" cx="18" cy="18" r="15" fill="none" stroke="#9fd3c7" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94" transform="rotate(-90 18 18)"/></svg>
+      <div><span class="t" id="clockT">14:30</span><span class="s" id="clockS">出勤</span></div>
+    </div>
+    <div class="hud-r">
+      <button class="icon-btn" id="mute" aria-label="音を消す"><i class="snd"></i></button>
+      <button class="card-btn perk-btn" id="perkBtn" aria-label="働く魅力カード"><i class="pk"></i><span id="perkN">0/8</span></button>
+      <button class="card-btn" id="cardBtn"><i></i>担当カード</button>
+    </div>
+  </div>
+
+  <!-- 気づきの印 -->
+  <button class="notice" id="notice" hidden aria-label="気づきの手がかり"><b></b></button>
+  <div class="found" id="found" hidden>気づきの手がかり</div>
+
+  <!-- 会話の枠 -->
+  <div class="talk" id="talk" hidden>
+    <div class="hint" id="hint" hidden><img src="img/senpai_face.webp" alt=""><p id="hintText"></p></div>
+    <div class="choices" id="choices"></div>
+    <div class="box" id="box">
+      <span class="name" id="name"></span>
+      <p class="line" id="line"></p>
+      <i class="next" id="nextMark"></i>
+    </div>
+  </div>
+
+  <!-- 場面のはじまり（時刻と場所） -->
+  <div class="sceneCard" id="sceneCard" hidden><span class="t" id="scT"></span><span class="p" id="scP"></span></div>
+
+  <!-- お出迎え・ドリンク・調理場・朝食などの操作 -->
+  <div class="panel" id="panel" hidden></div>
+
+  <!-- 働く魅力カード（先輩が教えてくれたら出る） -->
+  <div class="perk-card" id="perkCard" hidden>
+    <div class="pc-in">
+      <p class="pc-top"><span class="new">新しいカード</span><span class="pc-k">働く魅力カード</span><b class="pc-n">1 / 8</b></p>
+      <span class="pc-cat">仕事</span>
+      <h3 class="pc-title"></h3>
+      <p class="pc-text"></p>
+      <p class="pc-tap">タップで次へ</p>
+    </div>
+  </div>
+  <div class="modal perk-list" id="perkList" hidden>
+    <h3>働く魅力カード</h3>
+    <div class="list"></div>
+    <button class="btn-washi">とじる</button>
+  </div>
+
+  <!-- 担当カード -->
+  <div class="modal" id="cardModal" hidden>
+    <div class="cards">
+      <article class="tcard">
+        <header><span class="room">202号室</span><b>佐倉さま　3名さま</b></header>
+        <dl>
+          <dt>ご到着</dt><dd>15:00ごろ・お車</dd>
+          <dt>ご一行</dt><dd>ご両親・娘さま（娘さまのご予約）</dd>
+          <dt>ご夕食</dt><dd>会席・個室（掘りごたつ）<br>お時間はロビーで伺う（18:00／18:40）</dd>
+          <dt>ご予約時のお話</dt><dd>ご両親への旅行のプレゼント</dd>
+        </dl>
+      </article>
+      <article class="tcard">
+        <header><span class="room">205号室</span><b>中島さま　2名さま</b></header>
+        <dl>
+          <dt>ご夕食</dt><dd>会席・個室　18:00</dd>
+          <dt>ご予約時のご依頼</dt><dd><em>お誕生日のケーキを、お食事の最後に</em><br>（ご本人には内緒）</dd>
+        </dl>
+      </article>
+    </div>
+    <button class="btn-washi" id="cardClose">とじる</button>
+  </div>
+
+  <!-- タイトル -->
+  <section class="title" id="title">
+    <div class="bg title-bg"></div>
+    <div class="logo"><img src="img/logo.webp" alt="宙 SORA 渡月荘金龍"></div>
+    <div class="ttl">
+      <p class="sub">宙 SORA の一泊二日</p>
+      <h1>はじめての<br>担当</h1>
+      <div class="tline"></div>
+      <p class="cap">チェックインのときより良い笑顔を、<br>チェックアウトで。</p>
+    </div>
+    <div class="bottom">
+      <div class="pick">あなたの姿
+        <button class="av on" data-look="f" aria-label="女性"><img src="img/newbie_f.webp" alt=""></button>
+        <button class="av" data-look="m" aria-label="男性"><img src="img/newbie_m.webp" alt=""></button>
+      </div>
+      <button class="start" id="start">担当をはじめる</button>
+      <p class="note">約7分 ・ 音が出ます</p>
+    </div>
+  </section>
+
+  <!-- ふり返り -->
+  <section class="result" id="result" hidden></section>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
