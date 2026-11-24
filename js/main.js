@@ -483,7 +483,7 @@ async function showWalk() {
     e.preventDefault(); game.hold(v); hold.classList.toggle('on', v);
     clearInterval(stepT);
     // 廊下は靴の足音（右・左を交互に）。押している間、だいたい歩く速さで鳴らす
-    if (v) { let k = 0; const st = () => audio.se(k++ % 2 ? 'walk2' : 'walk1', 0.5); st(); stepT = setInterval(st, 520 / TIME_SCALE); }
+    if (v) { let k = 0; const st = () => audio.se(k++ % 2 ? 'walk2' : 'walk1', 0.9); st(); stepT = setInterval(st, 520 / TIME_SCALE); }
   };
   hold.addEventListener('pointerdown', on(true));
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => hold.addEventListener(t, on(false)));

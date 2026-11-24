@@ -400,3 +400,9 @@
 .interlude .it { font-size: 28px; letter-spacing: .3em; color: #3d3a33; opacity: 0; animation: ilText 1.4s .5s ease forwards; }
 .interlude .is { font-family: var(--gothic); font-size: 12px; letter-spacing: .3em; color: var(--teal-deep); opacity: 0; animation: ilText 1.4s .9s ease forwards; }
 @keyframes ilText { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* 立ち絵を大きく：ひざ下は画面の下（会話の枠のうしろ）に出して、頭の位置はそのまま、体を背景に見合う大きさにする */
+.chara-slot img { height: 92%; bottom: -24%; }
+@media (min-aspect-ratio: 1/1) { .chara-slot img { height: 128%; bottom: -38%; } }
+@media (min-aspect-ratio: 1/1) and (max-height: 500px) { .chara-slot img { height: 132%; bottom: -36%; } }
+@media (max-aspect-ratio: 1/1) and (max-height: 720px) { .chara-slot img { height: 78%; bottom: -24%; } }
