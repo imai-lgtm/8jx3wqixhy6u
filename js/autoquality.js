@@ -1,7 +1,7 @@
 // 3Dの画面が重い端末では、絵のきめ細かさを自動で少しずつ下げる（なめらかさを優先する）
 // 使い方：const aq = autoQuality(renderer, onChange); 毎フレーム aq.tick(dt) を呼ぶ
 export function autoQuality(renderer, onChange, { start = Math.min(devicePixelRatio, 1.5), floor = 0.75 } = {}) {
-  let ratio = start, sum = 0, n = 0, calm = 0;
+  let ratio = start, sum = 0, n = 0, calm = 0, drops = 0;
   renderer.setPixelRatio(ratio);
   return {
     get ratio() { return ratio; },
@@ -10,13 +10,10 @@ export function autoQuality(renderer, onChange, { start = Math.min(devicePixelRa
       sum += dt; n += 1;
       if (n < 45) return;
       const avg = sum / n; sum = 0; n = 0;
-      if (avg > 1 / 40 && ratio > floor) {          // 40コマ/秒を下回る → きめ細かさを下げる
+      if (avg > 1 / 40 && ratio > floor && ++drops <= 2) {   // 40コマ/秒を下回る → きめ細かさを下げる（2回まで）
         ratio = Math.max(floor, +(ratio * 0.8).toFixed(2));
         renderer.setPixelRatio(ratio); onChange?.(); calm = 0;
-      } else if (avg < 1 / 57 && ratio < start && ++calm > 6) {   // しばらく余裕があれば、少し戻す
-        ratio = Math.min(start, +(ratio * 1.15).toFixed(2));
-        renderer.setPixelRatio(ratio); onChange?.(); calm = 0;
-      }
+      }   // 下げたら戻さない（上げ下げをくり返すと、そのたびに画面が一瞬止まるため）
     },
   };
 }

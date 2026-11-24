@@ -2,7 +2,7 @@
 // W・H は絵の大きさ（気づきの印を、絵の中の場所に合わせて置くため）
 const P = { W: 1024, H: 1536 }, L = { W: 1536, H: 1024 };
 export const BG = {
-  lobby: { p: 'img/walk.webp', w: 'img/walk_wide.webp', label: 'ロビー', pos: '50% 50%' },
+  backyard: { p: 'img/backyard.webp', w: 'img/backyard_wide.webp', label: 'バックヤード', pos: '50% 50%' },   // 出勤・引き継ぎ（スタッフの事務所。庭は見えない）
   walk: { p: 'img/corridor.webp', w: 'img/corridor_wide.webp', label: '廊下' },
   lobby_view_f: { p: 'img/lobby_view_f.webp', w: 'img/lobby_view_f_wide.webp', label: 'ロビーの窓' },
   lobby_view_m: { p: 'img/lobby_view_m.webp', w: 'img/lobby_view_m_wide.webp', label: 'ロビーの窓' },
@@ -16,6 +16,7 @@ export const BG = {
   room205_look: { p: 'img/room205_look.webp', w: 'img/room205_look_wide.webp', label: '205号室', pos: '50% 25%' },
   room205_joy: { p: 'img/room205_joy.webp', w: 'img/room205_joy_wide.webp', label: '205号室', pos: '50% 25%' },
   night: { p: 'img/night.webp', w: 'img/night_wide.webp', label: '大浴場' },
+  night_hikari: { p: 'img/hikari.webp', w: 'img/hikari_wide.webp', label: '光の露天風呂', pos: '62% 50%' },   // 女性のとき（光の露天風呂は男女入れ替え制）
   breakfast: { p: 'img/breakfast.webp', w: 'img/breakfast_wide.webp', label: '朝食の個室' },
   photo: { p: null, w: null, label: '' },
 };
@@ -77,6 +78,8 @@ export const PROPS = {
 // 記念写真の人（ふつう・笑顔・タイミング外れ）
 export const FAMILY = ['father', 'mother', 'daughter'].map((id) => ({
   id, base: `img/${id}.webp`, smile: `img/${id}_smile.webp`, off: `img/${id}_off.webp`,
+  // お父さまのまばたき：ふつう・笑顔と同じ絵で、目だけ閉じたもの（体が動いて見えないように）
+  ...(id === 'father' ? { blink: 'img/father_blink.webp', smile_blink: 'img/father_smile_blink.webp' } : {}),
 }));
 
 // ふり返りの「本物の宙 SORA」（公式サイトの写真）

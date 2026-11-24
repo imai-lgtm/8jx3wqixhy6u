@@ -4,10 +4,10 @@ const SE = {
   select: 'se/select.mp3', hint: 'se/hint.mp3', card: 'se/card.mp3', kizuki: 'se/kizuki.mp3',
   glass: 'se/glass.mp3', cup: 'se/cup.mp3', chop: 'se/chop.mp3', shutter: 'se/shutter.mp3',
   clap: 'se/clap.mp3', step: 'se/step.mp3', fusuma: 'se/fusuma.mp3',
-  bath: 'se/bath.mp3', perk: 'se/perk.mp3', knock: 'se/knock.mp3', match: 'se/match.mp3', box: 'se/box.mp3', cheer: 'se/cheer.mp3',
+  bath: 'se/bath.mp3', perk: 'se/perk.mp3', knock: 'se/knock.mp3', match: 'se/match.mp3', walk1: 'se/walk1.mp3', walk2: 'se/walk2.mp3', box: 'se/box.mp3', cheer: 'se/cheer.mp3',
 };
 // 場面ごとの環境音（ループ）とBGM
-const AMB = { garden: 'se/amb_garden.mp3', morning: 'se/amb_morning.mp3', onsen: 'se/amb_onsen.mp3' };
+const AMB = { garden: 'se/amb_garden.mp3', falls: 'se/amb_falls.mp3', morning: 'se/amb_morning.mp3', onsen: 'se/amb_onsen.mp3' };
 const BGM = { title: 'bgm/title.mp3', dinner: 'bgm/dinner.mp3', night: 'bgm/night.mp3', morning: 'bgm/morning.mp3', photo: 'bgm/photo.mp3', ending: 'bgm/ending.mp3' };
 
 let ctx = null, master = null, muted = false;

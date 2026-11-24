@@ -162,12 +162,15 @@ export async function createWalkScene({ canvas, look, low = false }) {
       const pos = { me: state.p, father: state.f, mother: state.m, daughter: state.d };
       const order = [];
       for (const [id, sp] of Object.entries(sprites)) {
-        const p = pos[id];
+        // 表示の位置は、ルールの位置になめらかに追いつかせる（ルールの刻みと描く回数のずれで、カクカク進んで見えないように）
+        const target = pos[id];
+        sp.shown = sp.shown == null ? target : sp.shown + (target - sp.shown) * (1 - Math.exp(-dt * 14));
+        const p = sp.shown;
         const moved = sp.lastP == null ? 0 : Math.max(0, p - sp.lastP);
         sp.lastP = p;
         sp.dist += moved;
         if (moved > 0.0004) sp.movedAt = t;
-        const walking = t - (sp.movedAt ?? -9) < 0.15;   // 描く回数とルールの刻みがずれても、ちらつかないように
+        const walking = t - (sp.movedAt ?? -9) < 0.2;   // 描く回数とルールの刻みがずれても、ちらつかないように
         // 歩いた距離に合わせて4コマを順に出す（止まっているときは、ふつうの立ち姿）
         const k = Math.floor(sp.dist / sp.stride) % 4;
         const tex = walking ? sp.frames[k] : sp.t0;
@@ -189,7 +192,7 @@ export async function createWalkScene({ canvas, look, low = false }) {
       glow.material.opacity = 0.15 + 0.75 * near + Math.sin(t * 1.6) * 0.03;
       glow.scale.setScalar(1 + 0.5 * near);
       // カメラはお父さまのうしろからついていく
-      const camZ = Math.min(0, zOf(state.f) + 3.6);
+      const camZ = Math.min(0, zOf(sprites.father?.shown ?? state.f) + 3.6);
       camera.position.z += (camZ - camera.position.z) * (1 - Math.exp(-dt * 3));
     }
     camera.position.x = 0; camera.position.y = EYE + Math.sin(t * 1.3) * 0.004;

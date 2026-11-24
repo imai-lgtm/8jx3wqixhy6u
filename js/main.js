@@ -48,6 +48,8 @@ function currentBg() {
   if (id === 'lobby') return game.drink?.started ? 'lobby_family' : 'lobby_noglass';
   if (id === 'dinner') return game.flags.seat ? 'dinner_chair' : 'dinner';
   if (id === 'surprise') { const s = game.sur; return s?.stage === 'done' ? 'room205_joy' : s?.signal ? 'room205_sig' : s?.look ? 'room205_look' : 'room205_base'; }
+  if (id === 'breakfast') return game.chop ? 'breakfast' : 'backyard';   // 朝はバックヤードで先輩と話してから、朝食の個室へ
+  if (id === 'night' && look === 'f') return 'night_hikari';   // 女性の担当は、光の露天風呂
   return SCENES[id].bg;
 }
 const imgCache = new Map();
@@ -170,16 +172,20 @@ const SCENE_SOUND = {
   night: { bgm: 'night' }, breakfast: { bgm: 'morning' }, farewell: { bgm: 'photo' },
 };
 // 環境音（鳥・水・湯の音）は、ずっとは鳴らさない。その場の様子を見せる操作の間だけ、小さく鳴らす
-const BEAT_AMB = { serve: 'garden', drink: 'garden', bath: 'onsen', chopsticks: 'morning', photo: 'garden' };
+// [音の名前, 大きさ]。ロビーと記念写真は庭の滝の音（ロビーは窓ごしなので小さく）
+const BEAT_AMB = { bath: ['onsen'], chopsticks: ['morning'] };
+// 場面の間ずっと鳴らす環境音：ロビー（窓ごしの滝なので小さく）・円石の前（近くの滝）。窓の前に着いたあとも小さく
+const SCENE_AMB = { lobby: ['falls', 0.07], farewell: ['falls', 0.16] };
 // 次の場面の絵を先に読みこむ（電波が遅くても、切りかえで暗い画面が出ないように）
 const SCENE_ORDER = STORY.filter((b) => b.t === 'scene').map((b) => b.id);
 const SCENE_IMAGES = {
-  welcome: () => [srcOf(`lobby_view_${look}`), srcOf('walk'), 'img/corridor_wide.webp', 'img/walk_wide.webp', ...[look, 'father', 'mother', 'daughter'].flatMap((n) => [`img/back_${n}.webp`, ...[0, 1, 2, 3].map((i) => `img/back_${n}_w${i}.webp`)])],
+  night: () => [srcOf(look === 'f' ? 'night_hikari' : 'night')],
+  breakfast: () => [srcOf('backyard'), srcOf('breakfast'), PROPS.tray, PROPS.chop, PROPS.gift],
+  welcome: () => [srcOf(`lobby_view_${look}`), srcOf('walk'), 'img/corridor_wide.webp', ...[look, 'father', 'mother', 'daughter'].flatMap((n) => [`img/back_${n}.webp`, ...[0, 1, 2, 3].map((i) => `img/back_${n}_w${i}.webp`)])],
   lobby: () => [srcOf('lobby_noglass'), srcOf('lobby_family'), ...['father', 'mother', 'daughter'].flatMap((w) => ['half', 'empty'].map((l) => `img/glass_${w}_${l}_${wide() ? 'wide' : 'p'}.webp`))],
   dinner: () => [srcOf('dinner'), srcOf('dinner_chair')],
   surprise: () => ['base', 'sig', 'joy', 'look'].flatMap((s) => [srcOf(`room205_${s}`), `img/room205_${s}_wide.webp`]).concat(PROPS.cake, PROPS.flames),
-  breakfast: () => [srcOf('breakfast'), PROPS.tray, PROPS.chop, PROPS.gift],
-  farewell: () => ['img/bg_maruishi.webp', ...FAMILY.flatMap((f) => [f.base, f.smile, f.off])],
+  farewell: () => ['img/bg_maruishi.webp', ...FAMILY.flatMap((f) => [f.base, f.smile, f.off, f.blink, f.smile_blink].filter(Boolean))],
 };
 function preloadScene(id) { (SCENE_IMAGES[id] ? SCENE_IMAGES[id]() : [srcOf(SCENES[id].bg)]).forEach(preload); }
 function sceneVoices(id) {
@@ -196,18 +202,36 @@ function onScene(id) {
   const next = SCENE_ORDER[SCENE_ORDER.indexOf(id) + 1];
   if (next) preloadScene(next);
   const s = SCENES[id];
-  ui.clockT.textContent = s.clock;
-  ui.clockS.textContent = s.place;
+  const inter = INTERLUDE[id];
+  const setClock = () => { ui.clockT.textContent = s.clock; ui.clockS.textContent = s.place; };
+  if (!inter) setClock();
   ui.scT.textContent = s.clock; ui.scP.textContent = s.place;
-  ui.sceneCard.hidden = true; void ui.sceneCard.offsetWidth; ui.sceneCard.hidden = false;
-  later(2300, () => { ui.sceneCard.hidden = true; });
-  setBg(currentBg());
-  uiLock = performance.now() + 1100 / TIME_SCALE;
+  const showCard = () => {};   // 場面のはじめに真ん中へ出していた時刻と場所の表示はやめた（左上の時計に出ている）
+  if (inter) {
+    // 日をまたぐ場面の前に、ひと呼吸（明るい和紙の幕に「そして、翌朝。」。暗くはしない）
+    interlude.querySelector('.it').textContent = inter.title;
+    interlude.querySelector('.is').textContent = inter.sub;
+    interlude.hidden = false; interlude.classList.remove('out'); void interlude.offsetWidth; interlude.classList.add('in');
+    ui.talk.style.visibility = 'hidden'; ui.chara.style.visibility = 'hidden';
+    later(1000, () => { setBg(currentBg(), true); setClock(); });        // 幕のうしろで、朝の部屋と時計に切りかえる
+    later(2600, () => { interlude.classList.add('out'); ui.talk.style.visibility = ''; ui.chara.style.visibility = ''; showCard(); });
+    later(3500, () => { interlude.hidden = true; interlude.classList.remove('in', 'out'); });
+    uiLock = performance.now() + 3300 / TIME_SCALE;
+  } else {
+    setBg(currentBg());
+    uiLock = performance.now() + 1100 / TIME_SCALE;
+  }
   const snd = SCENE_SOUND[id] || {};
   audio.loop('bgm', snd.bgm); audio.loop('amb', null);
   const idx = STORY.findIndex((b) => b.t === 'scene' && b.id === id);
   ui.clockArc.style.strokeDashoffset = String(94.2 * (1 - idx / STORY.length));
 }
+
+// 日をまたぐ場面の前の、ひと呼吸の幕
+const INTERLUDE = { breakfast: { title: 'そして、翌朝。', sub: '' } };
+const interlude = el('div', 'interlude', '<p class="it"></p><p class="is"></p>');
+interlude.hidden = true;
+ui.app.appendChild(interlude);
 
 // ---------------- ビート ----------------
 function clearBeatUi() {
@@ -260,8 +284,10 @@ function showLine(who, text) {
 
 function onBeat(b) {
   audio.stopVoice();
+  if (b.t !== 'line') ui.sceneCard.hidden = true;   // 時刻と場所の表示は、会話の上でだけ出す（写真や操作の画面に一瞬残らないように）
   if (b.t !== 'walk' && b.t !== 'photo') ui.app.classList.remove('in3d');   // 3Dの間だけ背景の絵を隠す（隠すのは、3Dが映ってから）
-  audio.loop('amb', BEAT_AMB[b.t] || null);
+  const amb = BEAT_AMB[b.t] || SCENE_AMB[game.sceneId] || (game.sceneId === 'welcome' && game.walk?.done ? ['falls', 0.07] : [null]);
+  audio.loop('amb', amb[0], amb[1]);
   clearBeatUi();
   ui.hud.hidden = false;
   ui.talk.hidden = false;
@@ -456,7 +482,8 @@ async function showWalk() {
   const on = (v) => (e) => {
     e.preventDefault(); game.hold(v); hold.classList.toggle('on', v);
     clearInterval(stepT);
-    if (v) { audio.se('step', 0.22); stepT = setInterval(() => audio.se('step', 0.18), 560 / TIME_SCALE); }
+    // 廊下は靴の足音（右・左を交互に）。押している間、だいたい歩く速さで鳴らす
+    if (v) { let k = 0; const st = () => audio.se(k++ % 2 ? 'walk2' : 'walk1', 0.5); st(); stepT = setInterval(st, 520 / TIME_SCALE); }
   };
   hold.addEventListener('pointerdown', on(true));
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => hold.addEventListener(t, on(false)));
@@ -765,7 +792,7 @@ async function showPhoto() {
       <div class="row"><span class="lab">立ち位置</span><div class="spots"><button class="spot" data-i="0">左</button><button class="spot on" data-i="1">正面</button><button class="spot" data-i="2">右</button></div></div>
       <div class="row"><span class="lab">ズーム</span><span class="zl">引き</span><input id="pzoom" type="range" min="0" max="100" value="85" aria-label="ズーム（左で引き・右で寄り）"><span class="zl">寄り</span></div>
       <div class="shoot"><button class="call" id="pcall">声をかける</button><button class="shutter" id="pshutter" aria-label="シャッター"><i></i></button>
-        <div class="mood">ご家族の様子<b id="pmood">円石を見ている</b></div></div>
+        <div class="mood">ご家族の様子<b id="pmood">よそ見をしている</b></div></div>
     </div>
     <div class="print" id="pprint"><div class="paper"><img id="pshot" alt=""><p>10:08 円石の前にて</p></div><ul class="review" id="preview"></ul>
       <div class="btns2"><button class="again" id="pagain">撮りなおす</button><button class="keep" id="pkeep">この写真にする</button></div></div>
@@ -800,7 +827,7 @@ async function showPhoto() {
     $('preview').innerHTML =
       li(shot.heads === 3, shot.heads === 3 ? '3人ともお顔が入った' : `お顔が入ったのは ${shot.heads}人`) +
       li(shot.stone, shot.stone ? 'うしろに家族円満の「円石」が入った' : '円石が入っていない') +
-      li(shot.mood === 'smile', shot.mood === 'smile' ? '声をかけて、こちらを向いた瞬間' : shot.mood === 'blink' ? 'お父さまが目をつぶっていた' : 'まだ円石を見ている（声をかけてから撮ろう）') +
+      li(shot.mood === 'smile', shot.mood === 'smile' ? '声をかけて、こちらを向いた瞬間' : shot.mood === 'blink' ? 'お父さまが目をつぶっていた' : 'まだ、こちらを向いていない（声をかけてから撮ろう）') +
       li(shot.sizeOk, shot.size > CONFIG.photo.sizeMax ? '近すぎて窮屈' : shot.size < CONFIG.photo.sizeMin ? '人が小さい' : 'ちょうどよい大きさ');
     $('pprint').classList.add('show');
   });
@@ -815,7 +842,7 @@ function updatePhoto() {
   const now = performance.now();
   if (now - (updatePhoto.at || 0) < 100) return;
   updatePhoto.at = now;
-  const m = $('pmood'), mt = mood === 'off' ? '円石を見ている' : 'こちらを向いた';
+  const m = $('pmood'), mt = mood === 'off' ? 'よそ見をしている' : 'こちらを向いた';
   if (m && m.textContent !== mt) m.textContent = mt;
   const t = $('ptags');
   if (t) {
@@ -855,7 +882,7 @@ function onFinish() {
       <div class="sec"><h3>集めた 働く魅力カード ${r.perks.length} / ${PERKS.length}</h3><div class="perks">${perkListHtml(r.perks)}</div></div>
     </div><div class="c3">
       <div class="sec"><h3>この仕事の、本当のこと</h3><ul class="facts">${SETTINGS.facts.map((f) => `<li>${f}</li>`).join('')}</ul></div>
-      <div class="sec"><h3>募集要項（求人情報より）</h3><dl class="recruit">${SETTINGS.recruit.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl><p class="real-cap">${SETTINGS.recruitNote}</p></div>
+      <div class="sec"><h3>募集要項</h3><dl class="recruit">${SETTINGS.recruit.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl><p class="real-cap">${SETTINGS.recruitNote}</p></div>
       <div class="sec"><h3>本物の 宙 SORA</h3><div class="real">${REAL.map((x) => `<img src="${x.src}" alt="${x.alt}">`).join('')}</div>
       <p class="real-cap">ロビーから見る庭・掘りごたつの個室・家族円満の「円石」。ゲームの場所は実際にあります（公式サイトの写真）</p></div>
       <div class="btns"><a class="btn main" href="${SETTINGS.internshipUrl}" target="_blank" rel="noopener">${SETTINGS.internshipLabel}</a><button class="btn sub" id="retry">もう一度担当する</button></div>
@@ -919,6 +946,7 @@ function loop(now) {
   if (game.sceneId === 'lobby' && currentBg() !== bgName) { setBg(currentBg()); setTimeout(() => { glassLayer.innerHTML = ''; }, 1200); }   // 3人にお出しし終えたら、グラスのある絵へ
   if (game.sceneId !== 'lobby' && glassLayer.childElementCount) glassLayer.innerHTML = '';
   if (game.sceneId === 'welcome' && game.walk?.done && currentBg() !== bgName) setBg(currentBg());
+  if (game.sceneId === 'breakfast' && interlude.hidden && currentBg() !== bgName) setBg(currentBg());
   showCake(game.sceneId === 'surprise' && game.sur?.stage === 'done');
   updateWalk(); updateDrink(); updateLevels(); updateSurprise(); updateChop(); updatePhoto();
   requestAnimationFrame(loop);

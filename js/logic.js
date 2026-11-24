@@ -89,14 +89,14 @@ export const PERKS = [
 
 // 場面（時刻・背景の名前）
 export const SCENES = {
-  handover: { clock: '14:30', place: '出勤・引き継ぎ', bg: 'lobby' },
+  handover: { clock: '14:30', place: '出勤・引き継ぎ ・ バックヤード', bg: 'backyard' },
   welcome: { clock: '15:00', place: 'お出迎え', bg: 'walk' },
   lobby: { clock: '15:10', place: 'ロビー', bg: 'lobby_family' },
   kitchen: { clock: '18:20', place: '調理場の受け渡し', bg: 'kitchen' },
   dinner: { clock: '18:40', place: '夕食 ・ 202号室の個室', bg: 'dinner' },
   surprise: { clock: '19:20', place: '205号室 ・ 誕生日', bg: 'room205' },
   night: { clock: '20:30', place: '仕事のあと', bg: 'night' },
-  breakfast: { clock: '7:00', place: '朝食 ・ 個室', bg: 'breakfast' },
+  breakfast: { clock: '7:00', place: '朝食', bg: 'breakfast' },
   farewell: { clock: '10:00', place: 'お見送り ・ 円石の前', bg: 'photo' },
 };
 
@@ -228,7 +228,8 @@ export const STORY = [
   { t: 'line', who: 'me', text: 'お誕生日、おめでとうございます。' },
   { t: 'line', who: 'girl', when: has('surprise'), text: 'えっ……ケーキ！？ うそ、ぜんぜん気づかなかった……！ ありがとう！' },
   { t: 'line', who: 'girl', when: (g) => !g.flags.surprise && g.sur?.result === 'seen', text: 'あれ？ ……今、ふすまの向こうにケーキ、見えちゃった。ふふ。' },
-  { t: 'line', who: 'girl', when: (g) => !g.flags.surprise && g.sur?.result !== 'seen', text: 'あれ？ ……もしかして、ケーキ？ 中島くん、まだ合図してないよね？' },
+  { t: 'line', who: 'boy', when: (g) => !g.flags.surprise && g.sur?.result !== 'seen', text: '（小声で）あっ……まだ、言う言葉を準備してたのに……。' },
+  { t: 'line', who: 'girl', when: (g) => !g.flags.surprise && g.sur?.result !== 'seen', text: 'え、ケーキ？ ……ふふ、中島くん、なんだかあわててる。' },
   { t: 'line', who: 'boy', text: 'お誕生日、おめでとう。旅館の方にも、内緒で手伝ってもらったんだ。' },
   { t: 'line', who: 'girl', text: 'もう……ありがとう。すっごくうれしい！' },
   { t: 'line', who: 'boy', text: '本当にありがとうございました。一生の思い出になります。' },
@@ -248,8 +249,13 @@ export const STORY = [
   { t: 'line', who: 'senpai', text: '夜勤はないから、明日は朝7時から。ゆっくり休んでね。', perk: 'yakin' },
 
   { t: 'scene', id: 'breakfast' },
-  { t: 'line', who: 'senpai', text: '朝食の準備をしよう。お箸を並べてね。昨日のこと、生かせるかな？' },
+  { t: 'line', who: 'senpai', text: 'おはよう！ よく眠れた？ 今朝も、佐倉さまの朝食からだよ。' },
+  { t: 'line', who: 'senpai', text: 'お膳にお箸を並べてね。昨日のこと、生かせるかな？' },
   { t: 'chopsticks' },
+  // 間違えたとき：まちがえた所に、お客さまと先輩が反応する
+  { t: 'line', who: 'father', when: (g) => g.chop?.wrongOthers, text: 'おや、お箸の向きが逆だね。……よいしょ。（向きを直す）' },
+  { t: 'line', who: 'mother', when: (g) => !g.flags.lefty && !g.chop?.flipped.mother, text: '（お箸を手に取って、向きを左右逆に置き直す）' },
+  { t: 'line', who: 'senpai', when: not('lefty'), face: 'worry', text: '（小声で）お母さまは左利き。昨日の夕食で、ご自分でお箸を置き直していたよね。左利きの方には箸先を右に、ほかの方はいつもどおり左に。次は気づけるといいね。' },
   { t: 'line', who: 'mother', when: has('lefty'), text: 'あら、お箸が……。昨日の夕食で、私が置き直していたの、覚えていてくださったの？' },
   { t: 'line', who: 'me', when: has('lefty'), text: 'はい。左手のほうが、お取りになりやすいかと思いまして。' },
   { t: 'line', who: 'mother', when: has('lefty'), text: 'まあ……うれしい。ありがとう。' },
@@ -469,6 +475,7 @@ export function createGame({ config = CONFIG, random = Math.random, on = {} } = 
       c.done = true;
       const f = c.flipped;
       if (f.mother && !f.father && !f.daughter) g.setFlag('lefty');
+      c.wrongOthers = f.father || f.daughter;   // 右利きの方の箸先を右にしてしまった
       g.next();
     },
 
@@ -492,7 +499,7 @@ export function createGame({ config = CONFIG, random = Math.random, on = {} } = 
       p.shot = p.tries[p.tries.length - 1];
       g.next();
     },
-    // いまのご家族の様子：'smile'（こちらを向いて笑顔）／'blink'（お父さまがまばたき）／'off'（円石を見ている）
+    // いまのご家族の様子：'smile'（こちらを向いて笑顔）／'blink'（お父さまがまばたき）／'off'（よそ見をしている：お母さまは紅葉、娘さまは手もとのバッグを見ている）
     photoMood() {
       const p = g.photo;
       if (!p || p.callAt == null) return 'off';

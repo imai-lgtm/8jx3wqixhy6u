@@ -26,7 +26,8 @@ export function pointAt(u, v) {
   else if (inSign(u, v)) D = groundDist(u, SIGN.v1);
   else if (v >= FENCE_BASE) D = groundDist(u, v);
   else if (v >= FENCE_TOP) D = groundDist(u, FENCE_BASE);
-  else D = groundDist(u, FENCE_BASE) + (3 + 40 * (FENCE_TOP - v)) * EYE / 1.5;
+  // 垣根より上の木々：垣根の上の端からなめらかに奥へ（段差をつけると、垣根の上の横木が引きのばされて太く見えるため）
+  else D = groundDist(u, FENCE_BASE) + 40 * (FENCE_TOP - v) * EYE / 1.5;
   return d.multiplyScalar(D / -d.z).add(new THREE.Vector3(0, EYE, 0));
 }
 
@@ -83,21 +84,22 @@ export async function createPhotoScene({ canvas, bg, family, low = false }) {
   const people = [];
   for (let i = 0; i < family.length; i++) {
     const f = family[i], P = PHOTO_SCENE.people[i];
-    const [tb, ts, to] = await Promise.all([load(f.base), load(f.smile), load(f.off)]);
+    const [tb, ts, to, tbb, tsb] = await Promise.all([load(f.base), load(f.smile), load(f.off), f.blink ? load(f.blink) : null, f.smile_blink ? load(f.smile_blink) : null]);
     const img = (tb || ts || to)?.image;
     const a = img ? img.width / img.height : 0.37;
     const mk = (tex) => {
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(P.h * a, P.h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.03, color: new THREE.Color(1, 0.96, 0.9), opacity: 0 }));
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(P.h * a, P.h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.03, depthWrite: false, color: new THREE.Color(1, 0.96, 0.9), opacity: 0 }));
       m.geometry.translate(0, P.h / 2, 0); m.position.set(P.x, 0, P.z); scene.add(m); return m;
     };
-    const layers = { base: tb && mk(tb), smile: ts && mk(ts), off: to && mk(to) };
+    const layers = { base: tb && mk(tb), smile: ts && mk(ts), off: to && mk(to), base_blink: tbb && mk(tbb), smile_blink: tsb && mk(tsb) };
     const s = new THREE.Mesh(new THREE.PlaneGeometry(P.h * a * 1.3, 0.5), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
     s.rotation.x = -Math.PI / 2; s.position.set(P.x, 0.01, P.z + 0.05); scene.add(s);
-    people.push({ P, layers, want: 'off', phase: i * 2.1 });
+    people.push({ P, layers, want: 'off', phase: i * 2.1, idx: i, cur: null, prev: null, fade: 1 });
   }
 
   let lastMood = '';
   const cam = { spot: 1, pos: new THREE.Vector3(), yaw: -0.16, pitch: THREE.MathUtils.degToRad(-4), zoom: 0.85, fov: 30 };   // 最初はわざと寄りすぎ・左向き（自分で構図を決める）
+  cam.ryaw = cam.yaw; cam.rpitch = cam.pitch;   // 画面に映す向き（cam.yaw / pitch に、なめらかに追いつく）
   cam.pos.copy(PHOTO_SCENE.spots[1]);
   const look = new THREE.Vector3();
   const clampView = () => {
@@ -128,18 +130,27 @@ export async function createPhotoScene({ canvas, bg, family, low = false }) {
     const fov = clampView();
     cam.fov += (fov - cam.fov) * (1 - Math.exp(-dt * 8));
     camera.position.copy(cam.pos); camera.fov = cam.fov; camera.updateProjectionMatrix();
-    look.set(Math.sin(cam.yaw) * Math.cos(cam.pitch), Math.sin(cam.pitch), -Math.cos(cam.yaw) * Math.cos(cam.pitch)).add(cam.pos);
+    const k = 1 - Math.exp(-dt * 16);
+    cam.ryaw += (cam.yaw - cam.ryaw) * k; cam.rpitch += (cam.pitch - cam.rpitch) * k;
+    look.set(Math.sin(cam.ryaw) * Math.cos(cam.rpitch), Math.sin(cam.rpitch), -Math.cos(cam.ryaw) * Math.cos(cam.rpitch)).add(cam.pos);
     camera.lookAt(look);
     for (const p of people) {
       const yaw = Math.atan2(camera.position.x - p.P.x, camera.position.z - p.P.z);
+      // 表情の切りかえ：前の顔は「不透明のまま」下に残し、新しい顔をその上にふわっと重ねる。重なり終えたら前の顔を消す
+      // （2枚とも半分ずつ透かすと、うしろの景色が透けて人が半透明に見えるため）。まばたきは一瞬で切りかえる
+      const want = p.layers[p.want] ? p.want : 'base';
+      if (want !== p.cur) {
+        const blink = want.endsWith('_blink') || (p.cur || '').endsWith('_blink');
+        p.prev = p.cur; p.cur = want; p.fade = blink ? 1 : 0;
+      }
+      p.fade = Math.min(1, (p.fade ?? 1) + dt / 0.18);
       for (const [k, m] of Object.entries(p.layers)) {
         if (!m) continue;
         m.rotation.y = yaw;
-        m.scale.y = 1 + Math.sin(t * 1.6 + p.phase) * 0.004;
-        const on = k === p.want || (!p.layers[p.want] && k === 'base');
-        const o = m.material.opacity + ((on ? 1 : 0) - m.material.opacity) * (1 - Math.exp(-dt * 22));
-        m.material.opacity = Math.abs(o - (on ? 1 : 0)) < 0.004 ? (on ? 1 : 0) : o;
-        m.visible = m.material.opacity > 0.01;
+        const isCur = k === p.cur, isPrev = k === p.prev && p.fade < 1;
+        m.material.opacity = isCur ? p.fade : isPrev ? 1 : 0;
+        m.renderOrder = 10 + p.idx * 2 + (isCur ? 1 : 0);   // 新しい顔を上に
+        m.visible = m.material.opacity > 0.001;
       }
     }
     renderer.render(scene, camera);
@@ -159,7 +170,8 @@ export async function createPhotoScene({ canvas, bg, family, low = false }) {
       if (key === lastMood) return;   // 変わったときだけ
       lastMood = key;
       const face = big ? 'smile' : 'base';
-      people.forEach((p, i) => { p.want = mood === 'smile' ? face : mood === 'blink' ? (i === 0 ? 'off' : face) : (i === 0 ? 'base' : 'off'); });
+      // まばたきは、いまの顔と同じ絵で目だけ閉じたもの（無いときは、ふだんの「よそ見」の絵）
+      people.forEach((p, i) => { p.want = mood === 'smile' ? face : mood === 'blink' ? (i === 0 ? (p.layers[face + '_blink'] ? face + '_blink' : face) : face) : 'off'; });   // 声をかける前は、3人ともよそ見（お父さまは円石をながめている）
     },
     setSpot(i) { cam.spot = i; },
     setZoom(z) { cam.zoom = z; },
@@ -168,7 +180,7 @@ export async function createPhotoScene({ canvas, bg, family, low = false }) {
     view() { return { spot: cam.spot, yaw: cam.yaw, pitch: cam.pitch, zoom: cam.zoom, aspect: camera.aspect }; },
     capture() {
       // 表情の入れかえを待たずに、いまの絵をすぐ写す
-      for (const p of people) for (const [k, m] of Object.entries(p.layers)) if (m) { const on = k === p.want || (!p.layers[p.want] && k === 'base'); m.material.opacity = on ? 1 : 0; m.visible = on; }
+      for (const p of people) { const want = p.layers[p.want] ? p.want : 'base'; p.cur = want; p.prev = null; p.fade = 1; for (const [k, m] of Object.entries(p.layers)) if (m) { const on = k === want; m.material.opacity = on ? 1 : 0; m.visible = on; } }
       renderer.render(scene, camera);
       return canvas.toDataURL('image/jpeg', 0.9);
     },
