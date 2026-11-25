@@ -43,7 +43,7 @@ export const CHARA = {
 export const NOTICE = {
   lobby_family: { p: { u: 0.255, v: 0.525 }, w: { u: 0.372, v: 0.565 } },
   dinner: { p: { x: 36, y: 37, fx: 32, fy: 25.5 }, w: { x: 38.5, y: 36, fx: 33, fy: 24 }, short: { x: 36, y: 34, fx: 32, fy: 23 } },
-  dinner_chair: { p: { x: 27, y: 36.5, fx: 26, fy: 27 }, w: { x: 41.5, y: 40, fx: 37, fy: 29 }, short: { x: 30, y: 38, fx: 28, fy: 29 } },
+  dinner_chair: { p: { x: 27, y: 36.5, fx: 26, fy: 27 }, w: { u: 0.396, v: 0.359 }, short: { x: 30, y: 38, fx: 28, fy: 29 } },   // 横長は寄せて切り出した絵の中の場所
 };
 // 印をタップしたときに出るひとこと
 export const NOTICE_TEXT = { knee: 'ひざが、つらそう……？', anniv: '「35年ぶり」……？' };

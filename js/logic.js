@@ -606,11 +606,7 @@ export function createGame({ config = CONFIG, random = Math.random, on = {} } = 
   function stepPhoto(dt) {
     const p = g.photo, c = config.photo;
     p.t += dt;
-    if (p.blinking) { p.blinkLeft -= dt; if (p.blinkLeft <= 0) p.blinking = false; }
-    else if (p.t >= p.nextBlink) {
-      p.blinking = true; p.blinkLeft = c.blinkLen;
-      p.nextBlink = p.t + c.blinkEvery[0] + random() * (c.blinkEvery[1] - c.blinkEvery[0]);
-    }
+    // まばたきはやめた（一瞬すぎて表情の違いが分からず、「目をつぶっていた」と言われても納得しにくいため）
   }
 
   return g;
